@@ -26,7 +26,7 @@ In these graphs, only 1 or 2 bars are "interesting" ... i.e. far off from 1x
 These interesting type annotation (bars) also appear in "interesting" groups
  of points in a set of randomly-sampled configurations.
 
-None of this is made precise in the paper.
+None of this is made technically precise in the paper.
 
 The question is: does our Transient Reticulated data ALSO have bar graphs with
  only 1 or 2 "interesting" bars?
@@ -40,10 +40,11 @@ We have all the ground-truth data (except, probably, for the largest benchmarks)
 TODO
 ---
 
-- [ ] read paper
+- [X] read paper
 - [ ] email authors for their code + benchmarks
 - [ ] which 1-ann configurations do we have for our large benchmarks?
 - [ ] make bar graphs
 - [ ] spot-check for interesting groups of points
+- [ ] map bars to points
 - [ ] 
 
