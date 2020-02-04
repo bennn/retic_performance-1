@@ -43,8 +43,19 @@ TODO
 - [X] read paper
 - [ ] email authors for their code + benchmarks
 - [ ] which 1-ann configurations do we have for our large benchmarks?
-- [ ] make bar graphs
+  - everything for sample_fsm aespython stats
+  - need to run them
+- [X] make simple bar graphs
+  - [X] pepm
+  - [X] icfp ... both these are interesting!
 - [ ] spot-check for interesting groups of points
+  - compare median to quartile?
+  - we have more bars beyond +-0.1 and higher maxs
+  - median ofter off baseline=1 line!
 - [ ] map bars to points
+  - add list of points to the exact plot?
+  - make special grace plot helper?
+- [ ] how many of our functions have 3 or more args?
+- [ ] what if 2 levels? more?
 - [ ] 
 

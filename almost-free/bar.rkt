@@ -16,12 +16,13 @@
   gtp-plot/performance-info
   gtp-plot/configuration-info
   gtp-plot/plot
-  gtp-util
+  (except-in gtp-util save-pict)
   file/glob
   racket/runtime-path
   racket/format
   racket/file
   racket/path
+  pict-abbrevs
   (only-in pict text)
   plot/no-gui)
 
@@ -109,22 +110,26 @@
   '(tag_fsm tag_jpeg tag_kcfa tag_morsecode tag_sieve tag_snake tag_suffixtree
     tag_synth tag_tetris tag_zombie))
 
-;(define e* (map pepm-bm->data exhaustive-bm*))
-;(define s* (map pepm-bm->sample sample-bm*))
-
-(define r* (map tr-bm->data tr*))
-
 (define (grid pi*)
   (define b
-    (parameterize ([*GRID-NUM-COLUMNS* 2]
+    (parameterize ([*GRID-NUM-COLUMNS* 1]
                    [*GRID-Y* #f])
       (grid-plot (lambda (x)
-                   (with-handlers ((exn:fail? (lambda (e) (text (~a (performance-info->name x))))))
+                   (with-handlers ((exn:fail? (lambda (e) (displayln (exn-message e)) (text (~a (performance-info->name x))))))
                      (make-grace-bars x))) pi*)))
-  (save-pict "ebars.png" b))
+  (save-pict "ebars.png" (add-rectangle-background b #:x-margin 10 #:y-margin 10)))
 
-;; (grid (append e* s*))
-(grid r*)
+(define (make-pepm)
+  (define e* (map pepm-bm->data exhaustive-bm*))
+  (define s* (map pepm-bm->sample sample-bm*))
+  (grid (append e* s*)))
+
+(define (make-icfp)
+  (define r* (map tr-bm->data tr*))
+  (grid r*))
+
+;; (make-icfp)
+(make-pepm)
 
 ;; ---
 
