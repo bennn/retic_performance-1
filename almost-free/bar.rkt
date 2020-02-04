@@ -12,6 +12,7 @@
 (require
   (only-in math/statistics mean)
   gtp-plot/reticulated-info
+  gtp-plot/typed-racket-info
   gtp-plot/performance-info
   gtp-plot/configuration-info
   gtp-plot/plot
@@ -27,16 +28,17 @@
 (define-runtime-path ROOT "../")
 (define-runtime-path HERE "./")
 (define OLD-DATA (build-path ROOT "data" "karst"))
-(define NEW-DATA (build-path HERE "data"))
+(define PEPM-DATA (build-path HERE "data" "gm-pepm-2018"))
+(define ICFP-DATA (build-path HERE "data" "gf-icfp-2018"))
 
 (define (move-file src dst)
   (copy-file src dst)
   (delete-file src)
   (void))
 
-(define (bm->data pre-str)
+(define (pepm-bm->data pre-str)
   (define str (~a pre-str))
-  (define new-data (build-path NEW-DATA str))
+  (define new-data (build-path PEPM-DATA str))
   (unless (directory-exists? new-data)
     (printf "WARNING: copy data for ~a~n" str)
     (make-directory new-data)
@@ -48,9 +50,9 @@
                (build-path new-data (string-append str "-python.tab"))))
   (make-reticulated-info new-data))
 
-(define (bm->sample pre-str)
+(define (pepm-bm->sample pre-str)
   (define str (~a pre-str))
-  (define new-data (build-path NEW-DATA str))
+  (define new-data (build-path PEPM-DATA str))
   (unless (directory-exists? new-data)
     ;;(printf "WARNING: copy data for ~a~n" str)
     (make-directory new-data)
@@ -82,6 +84,17 @@
           (copy-file sample dst)))))
   (make-reticulated-info new-data))
 
+(define (glob1 p)
+  (define m* (glob p))
+  (cond
+    [(or (null? m*) (not (null? (cdr m*))))
+     (raise-argument-error 'glob1 "expected one match, got 0 or 2+")]
+    [else
+     (car m*)]))
+
+(define (tr-bm->data src)
+  (make-typed-racket-info (glob1 (build-path ICFP-DATA (format "~a-*.rktd" src)))))
+
 ;; ---
 
 (define exhaustive-bm*
@@ -92,15 +105,26 @@
 (define sample-bm*
   '(sample_fsm aespython stats))
 
-(define e* (map bm->data exhaustive-bm*))
-(define s* (map bm->sample sample-bm*))
-(define b
-  (parameterize ([*GRID-NUM-COLUMNS* 2]
-                 [*GRID-Y* #f])
-    (grid-plot (lambda (x)
-                 (with-handlers ((exn:fail? (lambda (e) (text (~a (performance-info->name x))))))
-                   (make-grace-bars x))) (append e* s*))))
-(save-pict "ebars.png" b)
+(define tr*
+  '(tag_fsm tag_jpeg tag_kcfa tag_morsecode tag_sieve tag_snake tag_suffixtree
+    tag_synth tag_tetris tag_zombie))
+
+;(define e* (map pepm-bm->data exhaustive-bm*))
+;(define s* (map pepm-bm->sample sample-bm*))
+
+(define r* (map tr-bm->data tr*))
+
+(define (grid pi*)
+  (define b
+    (parameterize ([*GRID-NUM-COLUMNS* 2]
+                   [*GRID-Y* #f])
+      (grid-plot (lambda (x)
+                   (with-handlers ((exn:fail? (lambda (e) (text (~a (performance-info->name x))))))
+                     (make-grace-bars x))) pi*)))
+  (save-pict "ebars.png" b))
+
+;; (grid (append e* s*))
+(grid r*)
 
 ;; ---
 
@@ -109,9 +133,9 @@
 
   (test-case "init"
     (delete-directory/files "data/Espionage" #:must-exist? #false)
-    (check-pred reticulated-info? (bm->data 'Espionage))
+    (check-pred reticulated-info? (pepm-bm->data 'Espionage))
     (delete-directory/files "data/Espionage")
-    (check-pred reticulated-info? (bm->sample 'Espionage))
+    (check-pred reticulated-info? (pepm-bm->sample 'Espionage))
     (delete-directory/files "data/Espionage"))
 
 )
