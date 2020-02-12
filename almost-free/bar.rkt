@@ -6,11 +6,12 @@
 ;;
 ;; So a benchmark with 4 "units" leads to a graph with 4 bars,
 ;;  each bar shows the overhead of one mixed-typed configuration.
-;;
-;; TODO move plot into gtp-plot
+
+;; TODO
+;; - [ ] maybe only want the max bar? either way, easiest to have 1 color
 
 (require
-  (only-in math/statistics mean)
+  (only-in math/statistics mean median)
   gtp-plot/reticulated-info
   gtp-plot/typed-racket-info
   gtp-plot/performance-info
@@ -22,6 +23,7 @@
   racket/format
   racket/file
   racket/path
+  pict
   pict-abbrevs
   (only-in pict text)
   plot/no-gui)
@@ -99,7 +101,7 @@
 ;; ---
 
 (define exhaustive-bm*
-  '(futen http2 slowSHA call_method call_simple chaos fannkuch float go meteor
+  '(http2) #;(futen http2 slowSHA call_method call_simple chaos fannkuch float go meteor
     nbody nqueens pidigits pystone spectralnorm Espionage PythonFlow
     take5))
 
@@ -110,26 +112,64 @@
   '(tag_fsm tag_jpeg tag_kcfa tag_morsecode tag_sieve tag_snake tag_suffixtree
     tag_synth tag_tetris tag_zombie))
 
+(define (cfg-id<? id0 id1)
+  (cond
+    [(and (typed-racket-id? id0) (typed-racket-id? id1))
+     (typed-racket-id<? id0 id1)]
+    [(and (reticulated-id? id0) (reticulated-id? id1))
+     (reticulated-id<? id0 id1)]
+    [else
+     (raise-arguments-error 'cfg-id<? "mismatched ids" "id0" id0 "id1" id1)]))
+
 (define (grid pi*)
+  (define (has-1-type? cfg)
+    (= 1 (configuration-info->num-types cfg)))
   (define b
     (parameterize ([*GRID-NUM-COLUMNS* 1]
-                   [*GRID-Y* #f])
+                   [*GRID-Y* #f]
+                   [*POINT-COLOR* 2]
+                   [*POINT-ALPHA* 0.3])
       (grid-plot (lambda (x)
-                   (with-handlers ((exn:fail? (lambda (e) (displayln (exn-message e)) (text (~a (performance-info->name x))))))
-                     (make-grace-bars x))) pi*)))
-  (save-pict "ebars.png" (add-rectangle-background b #:x-margin 10 #:y-margin 10)))
+                   (define pi+ (filter-performance-info x has-1-type?))
+                   (define bad-types
+                     (let* ((cfg* (for/list ((c (in-configurations pi+))) c))
+                            (ci (confidence-interval (map configuration-info->mean-runtime cfg*))))
+                       (for/list ((c (in-list cfg*))
+                                  #:when (let ((r (configuration-info->mean-runtime c)))
+                                           (or (< r (car ci))
+                                               (< (cdr ci) r))))
+                         (configuration-info->id c))))
+                   (define (cfg->style i cfg)
+                     (define pc (*POINT-COLOR*))
+                     (define id (configuration-info->id cfg))
+                     (define c
+                       (or
+                         (for/or ((bad (in-list bad-types))
+                                  (i (in-naturals (+ pc 1)))
+                                  #:when (cfg-id<? bad id))
+                           i)
+                         pc))
+                     (hash 'color c 'line-color c))
+                   (with-handlers ((exn:fail:filesystem? (lambda (e) (displayln (exn-message e)) (text (~a (performance-info->name x))))))
+                     (parameterize ([*CONFIGURATION->STYLE* cfg->style])
+                       (hb-append
+                         40
+                         (exact-runtime-plot x)
+                         (make-grace-bars pi+)))))
+                 pi*)))
+  (add-rectangle-background b #:x-margin 10 #:y-margin 10))
 
 (define (make-pepm)
   (define e* (map pepm-bm->data exhaustive-bm*))
-  (define s* (map pepm-bm->sample sample-bm*))
+  (define s* '() #;(map pepm-bm->sample sample-bm*))
   (grid (append e* s*)))
 
 (define (make-icfp)
   (define r* (map tr-bm->data tr*))
   (grid r*))
 
-;; (make-icfp)
-(make-pepm)
+;; (save-pict "ebars-icfp.png" (make-icfp))
+(save-pict "ebars.png" (make-pepm))
 
 ;; ---
 
