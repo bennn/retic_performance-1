@@ -37,6 +37,23 @@ We have all the ground-truth data (except, probably, for the largest benchmarks)
  so lets see.
 
 
+VMIL notes
+---
+
+Contribution
+- bars => patterns
+- 1-2 bars exceptional
+
+Moth transient =/ Retic transient
+
+"line 8" typecheck very surprising
+
+typo: spectralnorm isn't in fig 2, must mean pystone
+
+code for the "higher than normal" conclusion?
+
+
+
 1-bar notes
 ---
 
