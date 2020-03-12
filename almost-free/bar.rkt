@@ -94,7 +94,7 @@
   (define m* (glob p))
   (cond
     [(or (null? m*) (not (null? (cdr m*))))
-     (raise-argument-error 'glob1 "expected one match, got 0 or 2+")]
+     (raise-arguments-error 'glob1 "expected one match, got 0 or 2+" "pattern" p "results" m*)]
     [else
      (car m*)]))
 
@@ -173,7 +173,7 @@
       (define cfg1* (for/list ((c (in-configurations pi+))) c))
       (parameterize ((*OVERHEAD-FREEZE-BODY* (< 9 (performance-info->num-units pi))))
         (save-pict
-          (format "all-1:~a.png" name)
+          (format "nsa/~a.png" name)
           (add-rectangle-background #:x-margin 10 #:y-margin 10
             (apply
               vl-append
@@ -208,8 +208,8 @@
 ;; (save-pict "ebars-pepm.png" (make-pepm))
 
   (grid2
-    (append (map (lambda (data) (lambda () (tr-bm->data data))) tr*)
-            (map (lambda (data) (lambda () (pepm-bm->data data))) exhaustive-bm*)))
+    (append (map (lambda (data) (lambda () (tr-bm->data data))) (list (car tr*)))
+            #;(map (lambda (data) (lambda () (pepm-bm->data data))) exhaustive-bm*)))
 
 ;; ---
 
