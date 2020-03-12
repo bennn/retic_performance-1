@@ -8,10 +8,10 @@
 ;;  each bar shows the overhead of one mixed-typed configuration.
 
 ;; TODO
-;; - [ ] maybe only want the max bar? either way, easiest to have 1 color
-;; - [ ] read paper, fully
-;; - [ ] make all 1-bar figures
-;; - [ ] read all 1-bar figures
+;; - [X] maybe only want the max bar? either way, easiest to have 1 color
+;; - [X] read paper, fully
+;; - [X] make all 1-bar figures
+;; - [X] read all 1-bar figures
 
 (require
   (only-in math/statistics mean median)
