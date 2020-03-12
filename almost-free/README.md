@@ -96,8 +96,8 @@ TODO
 - [X] map bars to points
   - add list of points to the exact plot?
   - make special grace plot helper?
-- [ ] make all 1-bar pictures
-  - missing slowSHA and take5, run on NSA
+- [X] make all 1-bar pictures
+  - missing slowSHA and take5, run on NSA ... they look like futen, bad for the plot-style
 - [ ] what is "slow"? is it "at least as bad as the worst 1-type config"?
 - [ ] script to check "slow" coverage / find a minimal partition that covers
   - should be easy ... 1) set all slow configs 2) filter by type ... repeat
