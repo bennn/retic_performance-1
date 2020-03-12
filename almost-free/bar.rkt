@@ -9,6 +9,9 @@
 
 ;; TODO
 ;; - [ ] maybe only want the max bar? either way, easiest to have 1 color
+;; - [ ] read paper, fully
+;; - [ ] make all 1-bar figures
+;; - [ ] read all 1-bar figures
 
 (require
   (only-in math/statistics mean median)
@@ -101,9 +104,9 @@
 ;; ---
 
 (define exhaustive-bm*
-  '(http2) #;(futen http2 slowSHA call_method call_simple chaos fannkuch float go meteor
+  '(futen http2 call_method call_simple chaos fannkuch float go meteor
     nbody nqueens pidigits pystone spectralnorm Espionage PythonFlow
-    take5))
+    take5 slowSHA))
 
 (define sample-bm*
   '(sample_fsm aespython stats))
@@ -121,9 +124,10 @@
     [else
      (raise-arguments-error 'cfg-id<? "mismatched ids" "id0" id0 "id1" id1)]))
 
+(define (has-1-type? cfg)
+  (= 1 (configuration-info->num-types cfg)))
+
 (define (grid pi*)
-  (define (has-1-type? cfg)
-    (= 1 (configuration-info->num-types cfg)))
   (define b
     (parameterize ([*GRID-NUM-COLUMNS* 1]
                    [*GRID-Y* #f]
@@ -159,6 +163,38 @@
                  pi*)))
   (add-rectangle-background b #:x-margin 10 #:y-margin 10))
 
+(define (grid2 make-pi*)
+  (parameterize ((*POINT-COLOR* 2) (*POINT-ALPHA* 0.3))
+    (for ((make-pi (in-list make-pi*)))
+      (define pi (make-pi))
+      (define name (performance-info->name pi))
+      (printf "now ~s~n" name)
+      (define pi+ (filter-performance-info pi has-1-type?))
+      (define cfg1* (for/list ((c (in-configurations pi+))) c))
+      (parameterize ((*OVERHEAD-FREEZE-BODY* (< 9 (performance-info->num-units pi))))
+        (save-pict
+          (format "all-1:~a.png" name)
+          (add-rectangle-background #:x-margin 10 #:y-margin 10
+            (apply
+              vl-append
+              20
+              (for/list ((bad-cfg (in-list cfg1*)))
+                (define bad-type (configuration-info->id bad-cfg))
+                (define (cfg->style i cfg)
+                  (define pc (*POINT-COLOR*))
+                  (define id (configuration-info->id cfg))
+                  (define c
+                    (if (cfg-id<? bad-type id)
+                      (+ pc 1)
+                      pc))
+                  (hash 'color c 'line-color c))
+                (with-handlers ((exn:fail:filesystem? (lambda (e) (displayln (exn-message e)) (text (~a (performance-info->name pi))))))
+                  (parameterize ([*CONFIGURATION->STYLE* cfg->style])
+                    (hb-append
+                      40
+                      (exact-runtime-plot pi)
+                      (make-grace-bars pi+))))))))))))
+
 (define (make-pepm)
   (define e* (map pepm-bm->data exhaustive-bm*))
   (define s* '() #;(map pepm-bm->sample sample-bm*))
@@ -169,7 +205,11 @@
   (grid r*))
 
 ;; (save-pict "ebars-icfp.png" (make-icfp))
-(save-pict "ebars.png" (make-pepm))
+;; (save-pict "ebars-pepm.png" (make-pepm))
+
+  (grid2
+    (append (map (lambda (data) (lambda () (tr-bm->data data))) tr*)
+            (map (lambda (data) (lambda () (pepm-bm->data data))) exhaustive-bm*)))
 
 ;; ---
 
