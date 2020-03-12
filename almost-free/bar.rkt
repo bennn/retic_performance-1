@@ -168,7 +168,7 @@
     (for ((make-pi (in-list make-pi*)))
       (define pi (make-pi))
       (define name (performance-info->name pi))
-      (printf "now ~s~n" name)
+      (printf "~s~n" name)
       (define pi+ (filter-performance-info pi has-1-type?))
       (define cfg1* (for/list ((c (in-configurations pi+))) c))
       (parameterize ((*OVERHEAD-FREEZE-BODY* (< 9 (performance-info->num-units pi))))
@@ -178,7 +178,9 @@
             (apply
               vl-append
               20
-              (for/list ((bad-cfg (in-list cfg1*)))
+              (for/list ((bad-cfg (in-list cfg1*))
+                         (i (in-naturals)))
+                (printf " cfg ~s~n" i)
                 (define bad-type (configuration-info->id bad-cfg))
                 (define (cfg->style i cfg)
                   (define pc (*POINT-COLOR*))
@@ -208,8 +210,8 @@
 ;; (save-pict "ebars-pepm.png" (make-pepm))
 
   (grid2
-    (append (map (lambda (data) (lambda () (tr-bm->data data))) (list (car tr*)))
-            #;(map (lambda (data) (lambda () (pepm-bm->data data))) exhaustive-bm*)))
+    (append #;(map (lambda (data) (lambda () (tr-bm->data data))) tr*)
+            (map (lambda (data) (lambda () (pepm-bm->data data))) '(take5 slowSHA))))
 
 ;; ---
 
